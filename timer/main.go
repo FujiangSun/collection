@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"time"
+)
+
 func main() {
 	//5秒后往通道写数据
 	//timer1 := time.NewTimer(5 * time.Second)
@@ -38,4 +43,7 @@ func main() {
 	//for {
 	//
 	//}
+	now := time.Now()
+	later := now.Format("2006-01-02 15:04")
+	fmt.Println(later)
 }
