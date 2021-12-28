@@ -2,33 +2,30 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/rpc"
 )
 
-type ArithRequest struct {
-	A, B int
-}
-type ArithResponse struct {
-	Pro int
-	Quo int
-	Rem int
-}
-
 func main() {
-	conn, err := rpc.Dial("tcp", ":8000")
+	// 建立连接
+	client, err := rpc.DialHTTP("tcp", "localhost:8081")
 	if err != nil {
-		log.Fatalln(err)
+		panic(err.Error())
 	}
-	req := ArithRequest{9, 2}
-	var res ArithResponse
-	err2 := conn.Call("Arith.Multiply", req, &res)
-	if err2 != nil {
-		log.Fatal(err2)
-	}
-	err3 := conn.Call("Arith.Devide", req, &res)
-	if err3 != nil {
-		log.Fatal(err3)
-	}
-	fmt.Printf("%d / %d 商 %d，余数 = %d\n", req.A, req.B, res.Quo, res.Rem)
+	// 参数
+	req := "mclink"
+	var resp *string
+	// 同步调用
+	//err = client.Call("EncryptionUtil.Encryption", req, &resp)
+	//if err != nil {
+	//	panic(err.Error())
+	//}
+	//fmt.Println(*resp)
+
+	// 异步调用
+	syncCall := client.Go("EncryptionUtil.Encryption", req, &resp, nil)
+	// 阻塞，异步调用成功后解除阻塞
+	replayDone := <-syncCall.Done
+	fmt.Println(replayDone)
+	fmt.Println(*resp)
+
 }

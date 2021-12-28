@@ -1,45 +1,46 @@
 package main
 
 import (
-	"errors"
-	"log"
+	"crypto/md5"
+	"encoding/hex"
+	"net"
 	"net/http"
 	"net/rpc"
 )
 
-type Arith struct {
+// EncryptionUtil 加密工具类
+type EncryptionUtil struct {
 }
 
-type ArithRequest struct {
-	A, B int
-}
-
-type ArithResponse struct {
-	Pro int
-	Quo int
-	Rem int
-}
-
-func (this *Arith) Multiply(req ArithRequest, res *ArithResponse) error {
-	res.Pro = req.A * req.B
+// Encryption 加密方法
+func (eu *EncryptionUtil) Encryption(req string, resp *string) error {
+	*resp = ToMd5(req)
 	return nil
 }
 
-func (this *Arith) Devide(req ArithRequest, res *ArithResponse) error {
-	if req.B == 0 {
-		return errors.New("除数不能为0")
-	}
-	res.Quo = req.A / req.B
-	res.Rem = req.A % req.B
-	return nil
+// ToMd5 封装 md5 方法
+func ToMd5(s string) string {
+	m := md5.New()
+	m.Write([]byte(s))
+	return "sss" + hex.EncodeToString(m.Sum(nil))
 }
+
 func main() {
-	//注册服务
-	rect := new(Arith)
-	rpc.Register(rect)
-	rpc.HandleHTTP()
-	err := http.ListenAndServe(":8000", nil)
+	// 功能对象注册
+	encryption := new(EncryptionUtil)
+	err := rpc.Register(encryption) //rpc.RegisterName("自定义服务名",encryption)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err.Error())
 	}
+	// HTTP注册
+	rpc.HandleHTTP()
+
+	// 端口监听
+	listen, err := net.Listen("tcp", ":8081")
+	if err != nil {
+		panic(err.Error())
+	}
+	// 启动服务
+	_ = http.Serve(listen, nil)
+
 }
